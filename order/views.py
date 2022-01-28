@@ -16,14 +16,19 @@ from .serializers import OrderSerializer, MyOrderSerializer
 # @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def checkout(request):
+    print(request.data)
     serializer = OrderSerializer(data=request.data)
-
+    print(serializer, serializer.is_valid())
     if serializer.is_valid():
         # stripe.api_key = settings.STRIPE_SECRET_KEY
-        paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
-
+        print(serializer.validated_data['items'])
+        items_ordered = ""
+        for item in serializer.validated_data['items']:
+            items_ordered += f"Product {item.get('product')} Preis (EZ) {item.get('product').price} Preis (Summme) {item.get('quantity') * item.get('product').price}"
+        print(items_ordered)
+        # paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
         try:
-            serializer.save(user=request.user, paid_amount=paid_amount)
+            serializer.save(items_ordered=items_ordered)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception:
